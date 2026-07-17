@@ -8,47 +8,99 @@ PASTA_PROJETO = Path(
 )
 
 
-def verificar_git(pasta: Path) -> int:
-    if not pasta.exists():
-        print(f"ERRO: a pasta nao existe: {pasta}")
-        return 2
-
-    resultado = subprocess.run(
-        [
-            "git",
-            "-C",
-            str(pasta),
-            "status",
-            "--porcelain",
-            "--untracked-files=all",
-        ],
+def executar_git(*argumentos):
+    return subprocess.run(
+        ["git", "-C", str(PASTA_PROJETO), *argumentos],
         capture_output=True,
         text=True,
+        encoding="utf-8",
+        errors="replace",
     )
 
-    if resultado.returncode != 0:
-        print(f"ERRO: a pasta nao e um repositorio Git: {pasta}")
-        print(resultado.stderr.strip())
+
+def verificar_main():
+    print(f"Pasta: {PASTA_PROJETO}")
+
+    if not PASTA_PROJETO.exists():
+        print("ERRO: a pasta nao existe.")
         return 2
 
-    alteracoes = resultado.stdout.strip()
+    repositorio = executar_git("rev-parse", "--is-inside-work-tree")
 
-    print(f"Pasta verificada: {pasta}")
+    if repositorio.returncode != 0:
+        print("ERRO: a pasta nao e um repositorio Git.")
+        return 2
 
-    if not alteracoes:
-        print("STATUS VERDE: pasta limpa.")
+    print("Consultando a main mais recente no GitHub...")
+
+    fetch = executar_git("fetch", "origin", "main")
+
+    if fetch.returncode != 0:
+        print("ERRO: nao foi possivel consultar o GitHub.")
+        print(fetch.stderr.strip())
+        return 2
+
+    branch = executar_git("branch", "--show-current").stdout.strip()
+    commit_local = executar_git("rev-parse", "--short", "HEAD").stdout.strip()
+    commit_main = executar_git(
+        "rev-parse", "--short", "origin/main"
+    ).stdout.strip()
+
+    print(f"Branch atual: {branch}")
+    print(f"Commit atual: {commit_local}")
+    print(f"Main GitHub:  {commit_main}")
+
+    status = executar_git(
+        "status",
+        "--porcelain",
+        "--untracked-files=all",
+    )
+
+    comparar = executar_git(
+        "diff",
+        "--quiet",
+        "origin/main",
+        "--",
+    )
+
+    alteracoes = status.stdout.strip()
+
+    if comparar.returncode == 0 and not alteracoes:
+        print()
+        print("STATUS VERDE")
+        print("O conteudo da pasta e igual a main mais recente.")
         print("O teste pode comecar.")
         return 0
 
-    print("STATUS VERMELHO: existem alteracoes locais.")
+    if comparar.returncode not in (0, 1):
+        print("ERRO: nao foi possivel comparar os arquivos.")
+        print(comparar.stderr.strip())
+        return 2
+
     print()
-    print("Arquivos encontrados:")
-    print(alteracoes)
-    print()
+    print("STATUS VERMELHO")
+    print("O conteudo da pasta NAO e igual a main mais recente.")
     print("O teste nao deve comecar.")
+
+    commits = executar_git(
+        "log",
+        "--oneline",
+        "--left-right",
+        "HEAD...origin/main",
+    ).stdout.strip()
+
+    if commits:
+        print()
+        print("Commits diferentes:")
+        print(commits)
+
+    if alteracoes:
+        print()
+        print("Alteracoes locais:")
+        print(alteracoes)
+
     return 1
 
 
 if __name__ == "__main__":
-    codigo = verificar_git(PASTA_PROJETO)
-    sys.exit(codigo)
+    sys.exit(verificar_main())
