@@ -1,3 +1,7 @@
 Test for icon green 2
 Test Not sync and not the same
+<<<<<<< Updated upstream
 test Line 3
+=======
+added line 3
+>>>>>>> Stashed changes
