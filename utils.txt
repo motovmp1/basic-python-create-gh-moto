@@ -1,3 +1,122 @@
 Test for icon green 2
 Test Not sync and not the same
 added line 3
+FLUXO GIT: DEV -> PULL REQUEST -> MAIN
+=======================================
+
+1. ENTRAR E ATUALIZAR A DEV
+----------------------------
+
+git switch dev
+git pull origin dev
+git status
+
+
+2. MODIFICAR OS ARQUIVOS
+------------------------
+
+Fazer as alterações e salvar os arquivos.
+
+Confirmar as alterações:
+
+git status
+
+
+3. COMMIT E PUSH NA DEV
+-----------------------
+
+git add .
+git commit -m "Descrever a alteracao"
+git push origin dev
+
+Confirmar:
+
+git status
+
+
+4. CRIAR PULL REQUEST: DEV -> MAIN
+----------------------------------
+
+gh pr create --base main --head dev --web
+
+No navegador, confirmar:
+
+dev -> main
+
+Depois clicar:
+
+Create pull request
+Merge pull request
+Confirm merge
+
+
+5. ATUALIZAR A MAIN NO COMPUTADOR
+---------------------------------
+
+git switch main
+git pull origin main
+git status
+
+
+6. SINCRONIZAR A DEV COM A MAIN
+-------------------------------
+
+git switch dev
+git merge main
+git push origin dev
+git status
+
+
+7. RESULTADO ESPERADO
+---------------------
+
+A branch atual deve ser dev.
+
+git branch
+
+Resultado:
+
+* dev
+  main
+
+O repositorio deve estar limpo:
+
+git status
+
+Resultado esperado:
+
+On branch dev
+Your branch is up to date with 'origin/dev'.
+nothing to commit, working tree clean
+
+
+8. VERIFICAR SE TODAS AS BRANCHES ESTAO IGUAIS
+----------------------------------------------
+
+git fetch origin
+git log --oneline --all --graph --decorate -10
+
+
+RESUMO
+======
+
+Entrar na dev:
+git switch dev
+
+Atualizar:
+git pull origin dev
+
+Salvar alteracoes:
+git add .
+git commit -m "Descricao"
+git push origin dev
+
+Criar Pull Request:
+gh pr create --base main --head dev --web
+
+Depois do merge no GitHub:
+git switch main
+git pull origin main
+git switch dev
+git merge main
+git push origin dev
